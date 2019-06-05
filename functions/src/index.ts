@@ -11,6 +11,7 @@ exports.getRequestOrigin = functions.https.onRequest(
    */
   async (req: express.Request, res: express.Response) => {
     if (req.method !== 'GET') res.sendStatus(403)
+    res.header('Access-Control-Allow-Origin', 'ip.set.sh')
     res.send({
       origin: req.headers['x-forwarded-for'] || req.connection.remoteAddress
     })
