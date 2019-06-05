@@ -1,1 +1,5 @@
-{}
+{
+  "projects": {
+    "ip-viewer": "ip-viewer-6"
+  }
+}
