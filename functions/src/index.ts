@@ -1,9 +1,6 @@
 import * as functions from 'firebase-functions'
 import express = require('express')
 
-// Start writing Firebase Functions
-// https://firebase.google.com/docs/functions/typescript
-
 exports.getRequestOrigin = functions.https.onRequest(
   /**
    * @description Same as express response handler
@@ -11,9 +8,14 @@ exports.getRequestOrigin = functions.https.onRequest(
    */
   async (req: express.Request, res: express.Response) => {
     if (req.method !== 'GET') res.sendStatus(403)
-    res.header('Access-Control-Allow-Origin', 'ip.set.sh')
-    res.send({
-      origin: req.headers['x-forwarded-for'] || req.connection.remoteAddress
-    })
+
+    const origin =
+      req.headers['x-forwarded-for'] || req.connection.remoteAddress
+    const __FROM_DEV__ = /^http:\/\/localhost/.test(origin as string)
+    res.set(
+      'Access-Control-Allow-Origin',
+      __FROM_DEV__ ? '*' : 'https://ip.set.sh'
+    )
+    res.send({ origin })
   }
 )
