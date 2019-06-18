@@ -2,39 +2,46 @@ import React, { useState, useEffect } from 'react'
 import styled from 'styled-components'
 import { detectFromGoogle, normalDetect } from '../request'
 
-const DETECT_MAP: {
-  [type: string]: () => Promise<{ [key: string]: string }>
-} = {
-  google: detectFromGoogle,
-  normal: normalDetect
-}
-
-function useDetectNetWork(type: string) {
-  const [ip, setIP] = useState('')
-  useEffect(() => {
-    if (DETECT_MAP[type]) {
-      DETECT_MAP[type]().then(({ origin, ip }) => {
-        setIP(origin || ip)
-      })
+export default function App() {
+  const [ipFromBlocked, setIpFromBlocked] = useState('')
+  const [ipInfoFromNotBlocked, setIpInfoFromNotBlocked] = useState({
+    ip: '',
+    location: {
+      city: ''
     }
   })
-  return {
-    ip,
-    type
-  }
-}
-
-export default function App() {
+  useEffect(() => {
+    detectFromGoogle().then(({ origin }) => setIpFromBlocked(origin))
+    normalDetect().then(({ location, ip }) =>
+      setIpInfoFromNotBlocked({ ip, location })
+    )
+  }, [])
+  const ipCollections = [
+    {
+      type: 'Google',
+      ip: ipFromBlocked
+    },
+    {
+      type: 'Normal',
+      ip: ipInfoFromNotBlocked.ip,
+      location: {
+        ...ipInfoFromNotBlocked.location
+      }
+    }
+  ]
   return (
     <Main className="dark">
-      {[useDetectNetWork('google'), useDetectNetWork('normal')].map(
-        (ipInfo, index) => (
-          <section className="section" key={index}>
-            <Title>From {ipInfo.type}</Title>
-            <IP>{ipInfo.ip || 'Loading'}</IP>
-          </section>
-        )
-      )}
+      {ipCollections.map(collection => (
+        <section className="section" key={collection.type}>
+          <Title>From {collection.type}</Title>
+          <IP>
+            {collection.ip || 'Loading'}
+            {collection.location && collection.location.city && (
+              <span>&nbsp;{collection.location.city}</span>
+            )}
+          </IP>
+        </section>
+      ))}
     </Main>
   )
 }
