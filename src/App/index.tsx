@@ -1,5 +1,7 @@
 import React, { useState, useEffect } from 'react'
 import styled from 'styled-components'
+import LinearProgress from '@material/react-linear-progress'
+import './index.sass'
 import { detectFromGoogle, normalDetect } from '../request'
 
 export default function App() {
@@ -10,11 +12,17 @@ export default function App() {
       city: ''
     }
   })
+  const [isCompleted, setIsCompleted] = useState(false)
   useEffect(() => {
-    detectFromGoogle().then(({ origin }) => setIpFromBlocked(origin))
-    normalDetect().then(({ location, ip }) =>
+    const blocked = detectFromGoogle().then(({ origin }) =>
+      setIpFromBlocked(origin)
+    )
+    const notBlocked = normalDetect().then(({ location, ip }) =>
       setIpInfoFromNotBlocked({ ip, location })
     )
+
+    // Only handle resolve Promise to implement correct progress bar
+    Promise.all([blocked, notBlocked]).then(() => setIsCompleted(true))
   }, [])
   const ipCollections = [
     {
@@ -30,19 +38,22 @@ export default function App() {
     }
   ]
   return (
-    <Main className="dark">
-      {ipCollections.map(collection => (
-        <section className="section" key={collection.type}>
-          <Title>From {collection.type}</Title>
-          <IP>
-            {collection.ip || 'Loading'}
-            {collection.location && collection.location.city && (
-              <span>&nbsp;{collection.location.city}</span>
-            )}
-          </IP>
-        </section>
-      ))}
-    </Main>
+    <>
+      <LinearProgress indeterminate closed={isCompleted} />
+      <Main className="dark">
+        {ipCollections.map(collection => (
+          <section className="section" key={collection.type}>
+            <Title>From {collection.type}</Title>
+            <IP>
+              {collection.ip || 'Loading'}
+              {collection.location && collection.location.city && (
+                <span>&nbsp;{collection.location.city}</span>
+              )}
+            </IP>
+          </section>
+        ))}
+      </Main>
+    </>
   )
 }
 
