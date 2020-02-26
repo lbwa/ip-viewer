@@ -1,13 +1,14 @@
 import http from './axios'
 
-export async function detectFromGoogle() {
+export async function fromGoogle() {
   // edit DETECT_FORM_XXX variables from .env.local
-  const { data } = await http.get(process.env
-    .REACT_APP_DETECT_FROM_GOOGLE as string)
+  const { data } = await http.get(process.env.REACT_APP_FROM_GOOGLE as string)
   return data
 }
 
-export async function normalDetect() {
-  const { data } = await http.get(process.env.REACT_APP_NORMAL_DETECT as string)
+export async function fromUniversal() {
+  const { data } = await http.get(
+    process.env.REACT_APP_FROM_UNIVERSAL as string
+  )
   return data
 }

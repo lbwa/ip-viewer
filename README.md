@@ -1,3 +1,3 @@
 # ip-viewer
 
-> A website for detecting network proxy.
+> A website for detecting public IP address.

@@ -2,53 +2,39 @@ import React, { useState, useEffect } from 'react'
 import styled from 'styled-components'
 import LinearProgress from '@material/react-linear-progress'
 import './index.sass'
-import { detectFromGoogle, normalDetect } from '../request'
+import { fromGoogle, fromUniversal } from '../request'
 
 export default function App() {
-  const [ipFromBlocked, setIpFromBlocked] = useState('')
-  const [ipInfoFromNotBlocked, setIpInfoFromNotBlocked] = useState({
-    ip: '',
-    location: {
-      city: ''
-    }
-  })
-  const [isCompleted, setIsCompleted] = useState(false)
+  const [withBlocked, setWithBlocked] = useState('')
+  const [withoutBlocked, setWithoutBlocked] = useState('')
+  const [isDone, setDone] = useState<boolean[]>([])
   useEffect(() => {
-    const blocked = detectFromGoogle().then(({ origin }) =>
-      setIpFromBlocked(origin)
-    )
-    const notBlocked = normalDetect().then(({ location, ip }) =>
-      setIpInfoFromNotBlocked({ ip, location })
-    )
-
-    // Only handle resolve Promise to implement correct progress bar
-    Promise.all([blocked, notBlocked]).then(() => setIsCompleted(true))
+    fromGoogle()
+      .then(({ origin }) => setWithBlocked(origin))
+      .finally(() => setDone(prev => prev.concat(true)))
+    fromUniversal()
+      .then(({ ip }) => setWithoutBlocked(ip))
+      .finally(() => setDone(prev => prev.concat(true)))
   }, [])
-  const ipCollections = [
+  const ips = [
     {
       type: 'Google',
-      ip: ipFromBlocked
+      ip: withBlocked
     },
     {
-      type: 'Normal',
-      ip: ipInfoFromNotBlocked.ip,
-      location: {
-        ...ipInfoFromNotBlocked.location
-      }
+      type: 'Universal',
+      ip: withoutBlocked
     }
   ]
   return (
     <>
-      <LinearProgress indeterminate closed={isCompleted} />
-      <Main className="dark">
-        {ipCollections.map(collection => (
-          <section className="section" key={collection.type}>
+      <LinearProgress indeterminate closed={isDone.length >= 2} />
+      <Main className='dark'>
+        {ips.map(collection => (
+          <section className='section' key={collection.type}>
             <Title>From {collection.type}</Title>
             <IP>
-              {collection.ip || 'Loading'}
-              {collection.location && collection.location.city && (
-                <span>&nbsp;{collection.location.city}</span>
-              )}
+              {collection.ip || (isDone.length >= 2 ? 'Failed' : 'Loading')}
             </IP>
           </section>
         ))}
