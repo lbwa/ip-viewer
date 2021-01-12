@@ -44,12 +44,13 @@ jobs:
         if: steps.cache.outputs.cache-hit != 'true'
         run: yarn
 
-      - name: Deploy coverage reports
+      - name: Deploy site
         env:
           ACCESS_TOKEN: ${{ secrets.ACCESS_TOKEN }}
-          BUILD_DIR: dist
+          BUILD_DIR: out
           TARGET_BRANCH: gh-pages
         run: |
+          yarn build
           REMOTE_ORIGIN=https://${ACCESS_TOKEN}@github.com/${GITHUB_REPOSITORY}
           cd ${BUILD_DIR}
           git init
