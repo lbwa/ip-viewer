@@ -1,0 +1,60 @@
+name: deploy
+
+on:
+  push:
+    branches:
+      - main
+
+jobs:
+  deployment:
+    name: From node ${{ matrix.node-version}} and ${{ matrix.os }}
+    runs-on: ${{ matrix.os }}
+    strategy:
+      matrix:
+        node-version: ['14.x']
+        os: [ubuntu-latest]
+
+    steps:
+      - uses: actions/checkout@v2
+
+      - name: Use Node.js ${{ matrix.node-version }}
+        uses: actions/setup-node@v2
+        with:
+          node-version: ${{ matrix.node-version }}
+
+      - name: Use Yarn
+        run: |
+          npm i yarn -g
+          yarn -v
+      # https://github.com/actions/cache/blob/master/examples.md#node---yarn
+      - name: Get yarn cache
+        id: yarn-cache
+        run: echo "::set-output name=dir::$(yarn cache dir)"
+
+      - uses: actions/cache@v1
+        with:
+          path: ${{ steps.yarn-cache.outputs.dir }}
+          key: ${{ runner.os }}-yarn-${{ hashFiles('**/yarn.lock') }}
+          restore-keys: |
+            ${{ runner.os }}-yarn-
+      # Skipping steps based on cache-hit
+      # https://github.com/actions/cache#skipping-steps-based-on-cache-hit
+      # https://help.github.com/en/actions/automating-your-workflow-with-github-actions/caching-dependencies-to-speed-up-workflows#output-parameters-for-the-cache-action
+      - name: Install Dependencies
+        if: steps.cache.outputs.cache-hit != 'true'
+        run: yarn
+
+      - name: Deploy coverage reports
+        env:
+          ACCESS_TOKEN: ${{ secrets.ACCESS_TOKEN }}
+          BUILD_DIR: dist
+          TARGET_BRANCH: gh-pages
+        run: |
+          REMOTE_ORIGIN=https://${ACCESS_TOKEN}@github.com/${GITHUB_REPOSITORY}
+          cd ${BUILD_DIR}
+          git init
+          git config user.name ${GITHUB_ACTOR}
+          git config user.email "${GITHUB_ACTOR}@users.noreply.github.com"
+          git add . -f
+          git commit -m "deploy: from Github action - $(date +"%T")"
+          git push --force ${REMOTE_ORIGIN} master:${TARGET_BRANCH}
