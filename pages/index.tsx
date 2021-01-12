@@ -11,12 +11,14 @@ const Home: React.FC<HomeProps> = function Home() {
     axios
       .get<string>('https://myip.ipip.net')
       .then(({ data }) => setLocalState(data))
+      .catch(() => setLocalState('failed'))
 
     axios
       .get<{ origin: string }>(
         'https://us-central1-ip-viewer-6.cloudfunctions.net/getRequestOrigin'
       )
       .then(({ data }) => setWorldWide(data.origin))
+      .catch(() => setWorldWide('failed'))
     return () => {}
   }, [])
   return (
@@ -41,13 +43,14 @@ const Home: React.FC<HomeProps> = function Home() {
         `}
       >
         {[
-          ['world wide', worldWide],
           ['local', localState],
+          ['world wide', worldWide],
         ].map(([title, state]) => (
           <div
             className={css`
               min-width: 100px;
             `}
+            key={title}
           >
             <h3
               className={css`
@@ -56,7 +59,7 @@ const Home: React.FC<HomeProps> = function Home() {
             >
               {title}
             </h3>
-            <span>{worldWide}</span>
+            <span>{state}</span>
           </div>
         ))}
       </main>
