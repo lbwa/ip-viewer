@@ -43,22 +43,18 @@ const Home: React.FC<HomeProps> = function Home() {
         `}
       >
         {[
-          ['local', localState],
           ['world wide', worldWide],
+          ['local', localState],
         ].map(([title, state]) => (
           <div
             className={css`
               min-width: 100px;
+              text-align: center;
+              text-transform: capitalize;
             `}
             key={title}
           >
-            <h3
-              className={css`
-                text-transform: capitalize;
-              `}
-            >
-              {title}
-            </h3>
+            <h3>{title}</h3>
             <span>{state}</span>
           </div>
         ))}
